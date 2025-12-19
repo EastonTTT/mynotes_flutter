@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mynotes/constants/routes.dart';
+import 'package:mynotes/services/auth/auth_exceptions.dart';
+import 'package:mynotes/services/auth/auth_services.dart';
 import 'package:mynotes/utils/show_error_dialog.dart';
 
 class LoginView extends StatefulWidget {
@@ -53,24 +54,25 @@ class _LoginViewState extends State<LoginView> {
               final email = _email.text;
               final password = _password.text;
               try {
-                await FirebaseAuth.instance.signInWithEmailAndPassword(
+                await AuthServices.firebase().logIn(
                   email: email,
                   password: password,
                 );
-                final user = FirebaseAuth.instance.currentUser;
-                if (user?.emailVerified ?? false) {
+                final user = AuthServices.firebase().currentUser;
+                if (user?.isEmailVerified ?? false) {
                   Navigator.of(
                     context,
                   ).pushNamedAndRemoveUntil(noteRoute, (_) => false);
                 } else {
                   Navigator.of(context).pushNamed(verifyEmailRoute);
                 }
-              } on FirebaseAuthException catch (e) {
-                if (e.code == 'invalid-credential') {
-                  await showErrorDialog(context, 'Invalid email or password.');
-                }
+              } on InvalidEmailAuthException catch (_) {
+                await showErrorDialog(context, 'Invalid email or password.');
+              } on InvalidCredentialsAuthException catch (_) {
+                await showErrorDialog(context, 'Invalid email or password.');
               } catch (e) {
-                await showErrorDialog(context, 'Error: $e.toString()');
+                print(e);
+                await showErrorDialog(context, 'Error: $e');
               }
             },
             child: const Text('Login'),
