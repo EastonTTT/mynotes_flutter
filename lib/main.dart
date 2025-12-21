@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mynotes/constants/routes.dart';
-import 'package:mynotes/firebase_options.dart';
-import 'package:mynotes/views/note_view.dart';
+import 'package:mynotes/views/notes/new_note_view.dart';
+import 'package:mynotes/views/notes/note_view.dart';
 import 'package:mynotes/services/auth/auth_services.dart';
 import 'package:mynotes/views/login_view.dart';
 import 'package:mynotes/views/register_view.dart';
@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
         registerRoute: (context) => const RegisterView(),
         noteRoute: (context) => const NoteView(),
         verifyEmailRoute: (context) => const VerifyEmailView(),
+        newNoteRoute: (context) => const NewNoteView(),
       },
     );
   }
@@ -46,7 +47,6 @@ class HomePage extends StatelessWidget {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
               final user = AuthServices.firebase().currentUser;
-              print(user);
               if (user != null) {
                 if (user.isEmailVerified) {
                   return const NoteView();

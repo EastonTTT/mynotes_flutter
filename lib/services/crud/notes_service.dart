@@ -37,13 +37,23 @@ const createNoteTable =
 class NotesService {
   Database? _db;
 
-  NotesService._sharedInstance();
+  NotesService._sharedInstance() {
+    _notesStreamController = StreamController<List<DatabaseNote>>.broadcast(
+      onListen: () {
+        _notesStreamController.sink.add(_notes);
+      },
+    );
+  }
+
   static final NotesService _shared = NotesService._sharedInstance();
+
   factory NotesService() => _shared;
 
   List<DatabaseNote> _notes = [];
-  final _notesStreamController =
-      StreamController<List<DatabaseNote>>.broadcast();
+  // final _notesStreamController =
+  //     StreamController<List<DatabaseNote>>.broadcast();
+
+  late final StreamController<List<DatabaseNote>> _notesStreamController;
 
   Stream<List<DatabaseNote>> get allNotes {
     return _notesStreamController.stream;
@@ -236,14 +246,17 @@ class NotesService {
     return notes.map((noteRow) => DatabaseNote.fromRow(noteRow)).toList();
   }
 
-  Future<DatabaseNote> updateNote({required DatabaseNote note}) async {
+  Future<DatabaseNote> updateNote({
+    required DatabaseNote note,
+    required String text,
+  }) async {
     await _ensureDBIsOpen();
 
     final db = _getDatabaseOrThrow();
     await getNote(id: note.id);
     final updatesCount = await db.update(
       noteTable,
-      {textColumn: note.text, isSyncedWithCloudColumn: 0},
+      {textColumn: text, isSyncedWithCloudColumn: 0},
       where: 'id = ?',
       whereArgs: [note.id],
     );
